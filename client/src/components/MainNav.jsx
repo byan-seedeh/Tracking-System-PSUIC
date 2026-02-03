@@ -10,7 +10,7 @@ const MainNav = () => {
     const handleLogout = () => {
         Swal.fire({
             title: 'Log out',
-            text: "Are you sure you want to log out or log in ?",
+            text: "Are you sure you want to log out or log in testttttttttt ?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#2563eb',
