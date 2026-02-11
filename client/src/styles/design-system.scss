@@ -1,0 +1,41 @@
+@import './variables';
+@import './mixins';
+
+// Global Reset for Design System
+body {
+    font-family: $font-family;
+    background-color: $bg-color;
+    // Ensure all base text defaults to body specs
+    font-size: 1rem;
+    font-weight: $font-weight-regular;
+    color: $text-color;
+}
+
+// Utility Classes mapped to Mixins
+.ds-header {
+    @include header-text;
+}
+
+.ds-body {
+    @include body-text;
+}
+
+.ds-small {
+    @include small-text;
+}
+
+.ds-card {
+    @include card-base;
+}
+
+.ds-card-interactive {
+    @include card-style;
+}
+
+.ds-input {
+    @include input-base;
+}
+
+.ds-btn {
+    @include button-base;
+}

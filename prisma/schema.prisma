@@ -1,0 +1,251 @@
+// prisma/schema.prisma - Version สมบูรณ์
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// === USER MODEL (อัปเดต) ===
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String?  @unique
+  email     String   @unique
+  password  String?
+  name      String?
+  picture   String?  @db.LongText
+  role      String   @default("user")
+  enabled   Boolean  @default(true)
+  
+  // [NEW] เพิ่ม field สำหรับ IT Support
+  department    String?  // แผนก เช่น "IT Support", "Network", "Software"
+  phoneNumber   String?  // เบอร์โทรสำหรับติดต่อด่วน
+  lineId        String?  // Line ID สำหรับแจ้งเตือน
+  
+  // [NEW] Personal Notification Settings
+  isEmailEnabled    Boolean @default(true)
+  notificationEmail String? // Custom email for notifications (overrides account email)
+  
+  // [NEW] Performance metrics สำหรับ IT
+  totalResolved Int    @default(0)  // จำนวน ticket ที่แก้ไขสำเร็จ
+  avgRating     Float  @default(0)  // rating เฉลี่ยจาก user
+  totalRated    Int    @default(0)  // จำนวนครั้งที่ถูก rate
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ticketsCreated  Ticket[]         @relation("TicketCreator")
+  ticketsAssigned Ticket[]         @relation("TicketAssignee")
+
+  notifications   Notification[]   // [NEW]
+  activityLogs    ActivityLog[]    @relation("LogCreator")
+
+
+  personalTasks   PersonalTask[]   // [NEW]
+}
+
+// ... existing models ...
+
+// === [NEW] PERSONAL TASK MODEL ===
+model PersonalTask {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  
+  title       String
+  description String?  @db.Text
+  
+  date        DateTime // For querying by day easily
+  startTime   DateTime?
+  endTime     DateTime?
+  
+  color       String?  @default("#3B82F6") // Blue is default
+  isCompleted Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+// === TICKET MODEL (อัปเดต) ===
+model Ticket {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String @db.Text
+  urgency     String @default("Normal")
+  status      String @default("not_start")
+  
+  rating       Int?     // 0-100 (SUS Score)
+  userFeedback String?  @db.Text
+  susDetails   String?  @db.Text // JSON: [5, 1, 5, ...]
+  
+  // [NEW] Notification tracking
+  notifiedAt     DateTime?  // เวลาที่ส่ง notification
+  readAt         DateTime?  // เวลาที่ user อ่าน
+  
+  // [NEW] SLA tracking
+  responseTime   Int?       // เวลาตอบสนอง (นาที)
+  resolutionTime Int?       // เวลาแก้ไข (นาที)
+  
+  // [NEW] Checklist & IT Note (Draft)
+  checklist      String?    @db.Text // JSON string: [{id, text, checked}]
+  note           String?    @db.Text // IT Note / Diagnosis / Solution
+
+  // Relations
+  createdById Int
+  createdBy   User @relation("TicketCreator", fields: [createdById], references: [id])
+  
+  assignedToId Int?
+  assignedTo   User? @relation("TicketAssignee", fields: [assignedToId], references: [id])
+
+  roomId Int
+  room   Room @relation(fields: [roomId], references: [id])
+
+  equipmentId Int?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images       Image[]
+  logs         ActivityLog[]
+
+  notification Notification[]  // [NEW]
+}
+
+// === [NEW] NOTIFICATION MODEL ===
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  
+  ticketId  Int?
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+  
+  title     String
+  message   String   @db.Text
+  type      String   // "ticket_update", "ticket_accepted", "ticket_rejected"
+  read      Boolean  @default(false)
+  readAt    DateTime?
+  
+  createdAt DateTime @default(now())
+}
+
+// === อัปเดต ACTIVITY LOG ===
+model ActivityLog {
+  id       Int    @id @default(autoincrement())
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  action    String
+  detail    String?  @db.Text
+  
+  // [UPDATED] เปลี่ยนจาก String เป็น relation
+  updatedById Int?
+  updatedBy   User?  @relation("LogCreator", fields: [updatedById], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+// === Models อื่นๆ ที่มีอยู่แล้ว (ไม่เปลี่ยน) ===
+model Category {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  tickets   Ticket[]
+}
+
+
+
+model Room {
+  id         Int         @id @default(autoincrement())
+  roomNumber String      @unique
+  building   String?
+  floor      Int?
+  imageUrl   String?     @db.LongText
+  capacity   Int?
+  type       String?
+  equipments Equipment[]
+  tickets    Ticket[]
+}
+
+model Equipment {
+  id       Int      @id @default(autoincrement())
+  name     String
+  type     String
+  serialNo String?  @unique
+  qrCode   String?  @unique
+  status   String   @default("Normal")
+  roomId   Int
+  room     Room     @relation(fields: [roomId], references: [id])
+  tickets  Ticket[]
+}
+
+
+
+
+
+model Image {
+  id         Int    @id @default(autoincrement())
+  asset_id   String
+  public_id  String
+  url        String
+  secure_url String
+  type       String @default("before")
+
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+
+
+// === [NEW] EMAIL TEMPLATE MODEL ===
+model EmailTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // "new_ticket_it", "ticket_resolved_user"
+  description String?  // Human readable description
+  subject     String
+  body        String   @db.Text
+  isEnabled   Boolean  @default(true)
+  variables   String?  // JSON string of available vars e.g. ["ticketId", "title"]
+  updatedAt   DateTime @updatedAt
+}
+
+// === [NEW] QUICK FIX / INV MODEL ===
+model QuickFix {
+  id        Int      @id @default(autoincrement())
+  title     String
+  description String @db.Text
+  image     String?  // URL of illustration
+  category  String?  // [NEW] Category filter e.g. "ACCOUNT&LOGIN", "COMPUTER", "PROJECTOR"
+  views     Int      @default(0)
+  
+  createdBy   String? // "admin" or Name
+  
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RolePermission {
+  id              Int     @id @default(autoincrement())
+  role            String  @unique // "admin", "it_support", "user"
+  
+  // Ticket Management
+  viewTickets     Boolean @default(false)
+  editTickets     Boolean @default(false)
+  assignIT        Boolean @default(false)
+  
+  // System Administration
+  manageUsers     Boolean @default(false)
+  manageEquipment Boolean @default(false)
+  
+  updatedAt       DateTime @updatedAt
+}

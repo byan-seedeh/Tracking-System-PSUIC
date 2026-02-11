@@ -1,0 +1,75 @@
+const express = require("express");
+const path = require("path");
+require("dotenv").config();
+const app = express();
+const morgan = require("morgan");
+const cors = require("cors");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
+const categoryRoutes = require("./routes/category");
+const equipmentRoutes = require("./routes/equipment");
+const roomRoutes = require("./routes/room");
+const ticketRoutes = require("./routes/ticket");
+
+const itRoutes = require("./routes/it-support");
+const notificationRoutes = require("./routes/notification");
+const reportRoutes = require("./routes/report");
+
+const adminRoutes = require("./routes/admin");
+
+
+const quickFixRoutes = require("./routes/quickFix");
+const permissionRoutes = require("./routes/permission");
+
+
+// middleware
+app.use(morgan("dev"));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
+app.use(cors());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Routes
+app.use("/api", authRoutes);
+app.use("/api", userRoutes);
+app.use("/api", categoryRoutes);
+app.use("/api", equipmentRoutes);
+app.use("/api", roomRoutes);
+app.use("/api", ticketRoutes);
+
+app.use("/api", itRoutes);
+app.use("/api", notificationRoutes);
+app.use("/api", reportRoutes);
+
+
+app.use("/api", adminRoutes);
+app.use("/api", quickFixRoutes);
+app.use("/api", permissionRoutes);
+const http = require("http");
+const { Server } = require("socket.io");
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
+
+// Middleware to attach io to req
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: "Something went wrong!",
+    error: process.env.NODE_ENV === "production" ? {} : err.message,
+  });
+});
+
+// Start Server
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

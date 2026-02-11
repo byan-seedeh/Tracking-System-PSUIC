@@ -1,0 +1,10 @@
+// main.scss
+@import 'variables';
+@import 'mixins';
+@import 'components';
+@import 'home';
+
+// Reset or Base Styles overrides could go here
+* {
+    box-sizing: border-box;
+}

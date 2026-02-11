@@ -1,0 +1,48 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "lsof -ti :5001 | xargs kill -9 || true && NODE_OPTIONS='--max-http-header-size=200000' nodemon server",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm start\" \"npm run client\"",
+    "install-all": "npm install && cd client && npm install",
+    "seed": "node prisma/seed-complete.js",
+    "migrate": "npx prisma migrate dev",
+    "studio": "npx prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.16.1",
+    "axios": "^1.12.1",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.18",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "googleapis": "^169.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.12",
+    "nodemon": "^3.1.10",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.3",
+    "uuid": "^9.0.1"
+  },
+  "prisma": {
+    "dev": "nodemon server.js",
+    "seed": "node prisma/seed.js",
+    "seed:it": "node prisma/seed-it.js",
+    "seed:all": "node prisma/seed.js && node prisma/seed-it.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prisma": "^6.16.1"
+  }
+}

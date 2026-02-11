@@ -1,0 +1,38 @@
+// _variables.scss
+// Color Palette
+$primary-navy: #193C6C; // Brand Primary
+$secondary-color: #35A8E0; // Sky Blue
+$input-bg: #F6F6F6; // Light Gray for Inputs/Dropdowns
+$bg-main: #F6F6F6; // Main Background
+$bg-white: #FFFFFF;
+$bg-color: $bg-main; // Alias for backward compatibility
+$primary-color: $primary-navy; // Alias
+
+// Semantic Colors
+$success-color: #2ECC71;
+$warning-color: #F1C40F;
+$danger-color: #E74C3C;
+$info-color: #35A8E0;
+
+// Typography
+$font-family: 'Poppins';
+$text-color: #334155;
+
+// Font Weights
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// UI Tokens
+$radius-md: 12px; // Strict 12px radius
+$radius-card: 12px;
+$btn-height-sm: 36px;
+$btn-height-md: 42px;
+$border-thin: 1px solid #E5E7EB; // Sharp thin border
+$gray-border: #E5E7EB; // Standard Gray Border
+
+// Typography Aliases
+$font-poppins: 'Poppins';
+$weight-medium: 500;
+$weight-semibold: 600;
