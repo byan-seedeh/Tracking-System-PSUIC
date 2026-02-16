@@ -51,19 +51,23 @@ const CalendarGrid = ({
     return (
         <div className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100">
             {/* Header */}
-            <div className="flex justify-between items-center mb-2 px-2">
+            <div className="flex justify-between items-center mb-6 px-4 pt-2">
                 <button
                     onClick={() => setCurrentDate(currentDate.subtract(1, 'month'))}
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-blue-50 text-blue-600 rounded-full transition-all hover:scale-110 active:scale-95"
+                    title="Previous Month"
                 >
-                    <ChevronLeft size={18} className="text-gray-400" />
+                    <ChevronLeft size={24} strokeWidth={2.5} />
                 </button>
-                <span className="font-bold text-gray-700 capitalize text-sm">{currentDate.format('MMMM YYYY')}</span>
+                <span className="font-bold text-gray-800 capitalize text-lg tracking-tight">
+                    {currentDate.format('MMMM YYYY')}
+                </span>
                 <button
                     onClick={() => setCurrentDate(currentDate.add(1, 'month'))}
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-blue-50 text-blue-600 rounded-full transition-all hover:scale-110 active:scale-95"
+                    title="Next Month"
                 >
-                    <ChevronRight size={18} className="text-gray-400" />
+                    <ChevronRight size={24} strokeWidth={2.5} />
                 </button>
             </div>
 

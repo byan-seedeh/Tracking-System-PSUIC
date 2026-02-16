@@ -5,6 +5,14 @@ exports.list = async (req, res) => {
         const notifications = await prisma.notification.findMany({
             where: { userId: req.user.id },
             orderBy: { createdAt: "desc" },
+            include: {
+                ticket: {
+                    include: {
+                        category: true,
+                        room: true
+                    }
+                }
+            },
             take: 20
         });
         res.json(notifications);

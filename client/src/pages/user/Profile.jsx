@@ -101,21 +101,21 @@ const Profile = () => {
     <div className="bg-gray-50 font-poppins min-h-screen">
 
       {/* ================= Header ================= */}
-      <header className="bg-[#193C6C] sticky top-0 z-50 px-6 pt-12 pb-6 rounded-b-3xl shadow-sm relative overflow-hidden">
+      <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
         <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/5 rounded-full blur-3xl" />
 
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
           <button
             onClick={() => navigate(-1)}
-            className="text-white p-2 rounded-full hover:bg-white/10 active:scale-90"
+            className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 active:scale-90"
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={28} />
           </button>
-          <h1 className="text-[28px] font-semibold text-white">
+          <h1 className="text-3xl font-semibold text-white">
             My Profile
           </h1>
         </div>
-      </header>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 mt-8 pb-6 space-y-6">
 

@@ -102,22 +102,23 @@ const Feedback = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-32 font-sans">
 
-            {/* Header Section */}
             {/* Standard Header */}
-            <div className="bg-[#193C6C] px-4 py-4 flex items-center sticky top-0 z-50 lg:hidden shadow-sm">
-                <button
-                    onClick={() => step === 2 ? handleBack() : navigate(-1)}
-                    className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
-                >
-                    <ArrowLeft size={24} />
-                </button>
-                <span className="text-lg font-bold text-white absolute left-1/2 -translate-x-1/2">
-                    Feedback
-                </span>
+            <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
+                <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
+                    <button
+                        onClick={() => step === 2 ? handleBack() : navigate(-1)}
+                        className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+                    >
+                        <ArrowLeft size={28} />
+                    </button>
+                    <h1 className="text-3xl font-semibold text-white">
+                        Feedback
+                    </h1>
+                </div>
             </div>
 
             {/* Main Content Container */}
-            <div className="max-w-5xl mx-auto lg:mx-0 px-4 mt-6 relative z-10 space-y-8">
+            <div className="max-w-4xl mx-auto px-6 mt-6 relative z-10 space-y-8 pb-32">
 
                 {/* 1. Ticket Info Card */}
                 {ticket && (

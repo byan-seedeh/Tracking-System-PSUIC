@@ -32,7 +32,6 @@ $btn-height-md: 42px;
 $border-thin: 1px solid #E5E7EB; // Sharp thin border
 $gray-border: #E5E7EB; // Standard Gray Border
 
-// Typography Aliases
-$font-poppins: 'Poppins';
-$weight-medium: 500;
-$weight-semibold: 600;
+// Layout Constants
+$layout-width: 1200px;
+$layout-padding-x: 1.5rem; // ~24px

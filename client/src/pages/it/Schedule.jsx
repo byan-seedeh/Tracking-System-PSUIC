@@ -71,93 +71,91 @@ const Schedule = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-8 font-sans text-gray-900">
             {/* Header */}
-            <div className="bg-[#193C6C] px-6 pt-10 pb-20 rounded-b-[2.5rem] shadow-lg relative z-0">
-                <div className="max-w-md md:max-w-2xl mx-auto flex items-center gap-4">
+            <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0">
+                <div className="max-w-[1200px] mx-auto flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
                         className="text-white hover:bg-white/10 p-2 -ml-2 rounded-full transition-colors"
                     >
                         <ChevronLeft size={28} />
                     </button>
-                    <h1 className="text-white text-2xl font-bold flex-1 text-center pr-8">
-                        My Schedule
-                    </h1>
+                    <div>
+                        <h1 className="text-white text-3xl font-semibold tracking-tight">
+                            My Schedule
+                        </h1>
+                        <p className="text-blue-200 text-sm mt-1">
+                            Manage your tasks and calendar
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-md md:max-w-2xl mx-auto px-6 -mt-12 relative z-10 space-y-6">
+            <div className="max-w-[1200px] mx-auto px-6 mt-6 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left Column: Calendar (Not too big, but main focus) */}
+                    <div className="lg:col-span-7">
+                        <CalendarGrid
+                            currentDate={currentMonth}
+                            setCurrentDate={setCurrentMonth}
+                            selectedDate={selectedDate}
+                            setSelectedDate={setSelectedDate}
+                            events={eventsForCalendar}
+                            onDateSelect={setSelectedDate}
+                        />
+                    </div>
 
-                {/* Calendar */}
-                <CalendarGrid
-                    currentDate={currentMonth}
-                    setCurrentDate={setCurrentMonth}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                    events={eventsForCalendar}
-                    onDateSelect={setSelectedDate}
-                />
-
-                {/* Actions */}
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex gap-4">
-                    <button
-                        onClick={handleSync}
-                        disabled={syncing}
-                        className="flex-1 bg-blue-50 text-blue-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-100 transition disabled:opacity-50"
-                    >
-                        <RefreshCw size={20} className={syncing ? "animate-spin" : ""} />
-                        {syncing ? "Syncing..." : "Sync Google Calendar"}
-                    </button>
-                    {/* Add Task Button (Placeholder for manual add if needed later) */}
-                    {/* <button className="flex-1 bg-gray-50 text-gray-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100 transition">
-                        <Plus size={20} />
-                        Add Task
-                    </button> */}
-                </div>
-
-                {/* Daily List */}
-                <div className="space-y-4">
-                    <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-                        <Calendar className="text-blue-600" size={20} />
-                        Tasks for {selectedDate.format('DD MMM YYYY')}
-                    </h3>
-
-                    {loading ? (
-                        <div className="text-center py-10 text-gray-400">Loading schedule...</div>
-                    ) : selectedItems.length > 0 ? (
-                        selectedItems.map((item, idx) => (
-                            <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4">
-                                <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center ${item.type === 'ticket' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
-                                    }`}>
-                                    <Clock size={20} />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className="font-bold text-gray-900">{item.details}</h4>
-                                        <span className="text-xs font-medium text-gray-400">
-                                            {dayjs(item.start).format('HH:mm')}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description || item.title}</p>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${item.type === 'ticket' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                            {item.type === 'ticket' ? 'Ticket' : 'Personal/Google'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-                            <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <Calendar size={32} />
-                            </div>
-                            <p className="text-gray-900 font-bold">No tasks scheduled</p>
-                            <p className="text-sm text-gray-500">Enjoy your free time!</p>
+                    {/* Right Column: Actions & Daily List */}
+                    <div className="lg:col-span-5 space-y-6">
+                        {/* Actions */}
+                        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <button
+                                onClick={handleSync}
+                                disabled={syncing}
+                                className="w-full bg-blue-50 text-blue-600 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-100 transition disabled:opacity-50"
+                            >
+                                <RefreshCw size={20} className={syncing ? "animate-spin" : ""} />
+                                {syncing ? "Syncing..." : "Sync Google Calendar"}
+                            </button>
                         </div>
-                    )}
-                </div>
 
+                        {/* Daily List */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[400px]">
+                            <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2 mb-4">
+                                <Calendar className="text-blue-600" size={20} />
+                                <span>{selectedDate.format('DD MMM YYYY')}</span>
+                            </h3>
+
+                            <div className="space-y-3">
+                                {loading ? (
+                                    <div className="text-center py-10 text-gray-400">Loading...</div>
+                                ) : selectedItems.length > 0 ? (
+                                    selectedItems.map((item, idx) => (
+                                        <div key={idx} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-start gap-3">
+                                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.type === 'ticket' ? 'bg-red-500' : 'bg-blue-500'
+                                                }`} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <h4 className="font-semibold text-sm text-gray-900 truncate">{item.details}</h4>
+                                                    <span className="text-[10px] font-medium text-gray-400 whitespace-nowrap">
+                                                        {dayjs(item.start).format('HH:mm')}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.description || item.title}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <div className="w-12 h-12 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <Calendar size={24} />
+                                        </div>
+                                        <p className="text-sm text-gray-500">No tasks for this day</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

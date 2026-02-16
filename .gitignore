@@ -1,5 +1,6 @@
-node_modules
-# Keep environment variables out of version control
+node_modules/
 .env
-
-/generated/prisma
+mysql_data/
+mysql_data_backup/
+uploads/*.jpeg
+uploads/*.png

@@ -116,26 +116,25 @@ const QuickFix = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
             {/* Standard Header */}
-            {/* Standard Header */}
-            <div className="bg-[#193C6C] sticky top-0 z-50 px-6 pt-12 pb-6 shadow-sm rounded-b-3xl relative overflow-hidden transition-all duration-300">
+            <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
                 {/* Decorative BG */}
                 <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white opacity-[0.04] blur-3xl pointer-events-none"></div>
 
-                <div className="flex items-center gap-4 relative z-10">
+                <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
                     <button
                         onClick={() => navigate(-1)}
                         className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors active:scale-90"
                     >
-                        <ArrowLeft size={24} />
+                        <ArrowLeft size={28} />
                     </button>
-                    <h1 className="text-[28px] font-semibold tracking-wide text-white leading-tight drop-shadow-sm">
+                    <h1 className="text-3xl font-semibold tracking-tight text-white leading-tight">
                         Knowledge
                     </h1>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="max-w-md md:max-w-2xl mx-auto lg:mx-0 mt-8 px-6 relative z-20 space-y-6">
+            <div className="max-w-4xl mx-auto mt-6 px-6 relative z-10 space-y-6 pb-20">
 
                 {/* Search & Filter Section */}
                 <div className="flex flex-col gap-3">

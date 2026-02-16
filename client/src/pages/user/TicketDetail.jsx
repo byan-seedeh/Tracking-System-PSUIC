@@ -110,19 +110,21 @@ const TicketDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
       {/* Standard Header */}
-      <div className="bg-[#193C6C] px-4 py-4 flex items-center gap-4 sticky top-0 z-50 lg:hidden shadow-sm">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-[28px] font-semibold text-white">
-          Ticket Details
-        </h1>
+      <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft size={28} />
+          </button>
+          <h1 className="text-3xl font-semibold text-white">
+            Ticket Details
+          </h1>
+        </div>
       </div>
 
-      <div className="max-w-md md:max-w-2xl mx-auto px-4 mt-6 pb-6 space-y-6 animate-in fade-in duration-500 relative z-10">
+      <div className="max-w-4xl mx-auto px-6 mt-6 pb-6 space-y-6 animate-in fade-in duration-500 relative z-10">
 
         {/* Ticket Info Card */}
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] p-6 space-y-4">

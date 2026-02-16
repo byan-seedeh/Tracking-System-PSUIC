@@ -71,22 +71,22 @@ const EquipmentDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       {/* Standard Header */}
-      <div className="bg-[#193C6C] px-4 py-4 flex items-center shadow-sm sticky top-0 z-10 -mx-4 md:-mx-6 mb-6">
-        <button
-          onClick={() => navigate("/user")}
-          className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <span className="text-lg font-bold text-white absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
-          Equipment Details
-        </span>
+      <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
+          <button
+            onClick={() => navigate("/user")}
+            className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft size={28} />
+          </button>
+          <h1 className="text-3xl font-semibold text-white">
+            Equipment Details
+          </h1>
+        </div>
       </div>
 
-      {/* Equipment Info Card */}
-      <div className="p-4">
+      <div className="max-w-4xl mx-auto px-6 mt-6 pb-6 space-y-6 relative z-10">
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Equipment Image/Icon Area */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white">

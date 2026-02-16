@@ -1,0 +1,295 @@
+@import 'variables';
+@import 'mixins';
+
+/* ===============================
+   Container
+================================= */
+.it-dashboard-container {
+    min-height: 100vh;
+    background-color: #F9FAFB;
+    font-family: 'Poppins';
+    color: $primary-navy;
+}
+
+
+/* ===============================
+   Header (Premium Overlap Layout)
+================================= */
+.it-dashboard-header {
+    width: 100%;
+    background-color: $primary-navy;
+    border-bottom-left-radius: 48px;
+    border-bottom-right-radius: 48px;
+    padding: 48px 24px 120px 24px; // Top / X / Bottom
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -20%;
+        right: -10%;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.05);
+        filter: blur(40px);
+        pointer-events: none;
+    }
+}
+
+.it-header-content {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+    z-index: 10;
+}
+
+
+/* ===============================
+   Welcome Text
+================================= */
+.it-user-welcome {
+    p {
+        color: #DBEAFE;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    h1 {
+        color: white;
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+}
+
+
+/* ===============================
+   Profile Button
+================================= */
+.it-profile-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    @media (min-width: 768px) {
+        display: flex;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+
+/* ===============================
+   Main Content Wrapper
+================================= */
+.it-content-wrapper {
+    max-width: 1120px;
+    margin: -48px auto 0 auto; // Perfect overlap
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: relative;
+    z-index: 20;
+}
+
+
+/* ===============================
+   Status Grid
+================================= */
+.it-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .it-status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .it-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .it-dashboard-header {
+        padding-bottom: 96px;
+    }
+
+    .it-content-wrapper {
+        margin-top: -32px;
+    }
+}
+
+
+/* ===============================
+   Status Card
+================================= */
+.it-status-card {
+    min-height: 152px;
+    border-radius: 20px;
+    padding: 24px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transition: all .25s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+    }
+
+    &.variant-blue {
+        background: linear-gradient(to bottom right, #193C6C, #2A5298);
+    }
+
+    &.variant-orange {
+        background: linear-gradient(to bottom right, #F59E0B, #D97706);
+    }
+
+    &.variant-green {
+        background: linear-gradient(to bottom right, #10B981, #059669);
+    }
+
+    &.variant-red {
+        background: linear-gradient(to bottom right, #EF4444, #DC2626);
+    }
+
+    h3 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    p {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        opacity: .9;
+    }
+}
+
+
+/* ===============================
+   Section Header
+================================= */
+.it-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1F2937;
+    }
+
+    button {
+        font-size: 14px;
+        font-weight: 600;
+        color: $primary-navy;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+
+/* ===============================
+   Ticket List
+================================= */
+.it-new-tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+
+/* ===============================
+   Ticket Card
+================================= */
+.it-ticket-item {
+    padding: 32px;
+    border-radius: 20px;
+    background: white;
+    border: 1px solid #F1F5F9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all .25s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: #BFDBFE;
+    }
+
+    .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    h4 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 6px;
+    }
+
+    .ticket-desc {
+        font-size: 14px;
+        color: #4B5563;
+    }
+
+    .ticket-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #F1F5F9;
+        font-size: 14px;
+        color: #6B7280;
+    }
+}
+
+
+/* ===============================
+   Empty State
+================================= */
+.it-empty-state {
+    padding: 48px;
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #F1F5F9;
+    text-align: center;
+
+    h4 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    p {
+        font-size: 14px;
+        color: #9CA3AF;
+    }
+}

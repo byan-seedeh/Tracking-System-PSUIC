@@ -35,25 +35,25 @@ const WaitingForFeedback = () => {
     return (
         <div className="min-h-screen bg-gray-50 pb-20 animate-in fade-in duration-500 font-sans">
             {/* Header */}
-            <div className="bg-[#193C6C] px-6 pt-2 pb-8 -mx-4 md:-mx-6 mb-6 shadow-md lg:hidden sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto flex items-center justify-center relative">
+            <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0 overflow-hidden">
+                <div className="max-w-4xl mx-auto flex items-center gap-4 relative z-10">
                     <button
                         onClick={() => navigate('/user')}
-                        className="absolute left-0 text-white hover:bg-white/10 p-2 -ml-2 rounded-full transition-colors"
+                        className="text-white hover:bg-white/10 p-2 -ml-2 rounded-full transition-colors"
                     >
                         <ChevronLeft size={28} />
                     </button>
-                    <h1 className="text-white text-xl md:text-2xl font-bold tracking-wide">Satisfaction Survey</h1>
-                </div>
-                <div className="text-center mt-2">
-                    <p className="text-blue-100/90 text-sm max-w-md mx-auto leading-relaxed">
-                        Please rate the service for your completed requests.
-                    </p>
+                    <div>
+                        <h1 className="text-white text-3xl font-semibold tracking-tight">Satisfaction Survey</h1>
+                        <p className="text-blue-100/90 text-sm mt-1 leading-relaxed">
+                            Rate service for your completed requests.
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 relative z-0">
+            <div className="max-w-4xl mx-auto px-6 mt-6 relative z-10">
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map(i => (

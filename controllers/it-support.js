@@ -4,38 +4,38 @@ const { listGoogleEvents } = require("./googleCalendar");
 
 // Get dashboard statistics
 exports.previewJob = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const ticket = await prisma.ticket.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                room: true,
-                equipment: true,
-                category: true,
-                createdBy: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        email: true,
-                        phoneNumber: true,
-                        picture: true,
-                        role: true
-                    }
-                },
-                images: true
-            }
-        });
+  try {
+    const { id } = req.params;
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        room: true,
+        equipment: true,
+        category: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            phoneNumber: true,
+            picture: true,
+            role: true
+          }
+        },
+        images: true
+      }
+    });
 
-        if (!ticket) {
-            return res.status(404).json({ message: "Ticket not found" });
-        }
-
-        res.json(ticket);
-    } catch (err) {
-        console.error("❌ Preview Job Error:", err);
-        res.status(500).json({ message: "Server Error" });
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
     }
+
+    res.json(ticket);
+  } catch (err) {
+    console.error("❌ Preview Job Error:", err);
+    res.status(500).json({ message: "Server Error" });
+  }
 };
 
 exports.getStats = async (req, res) => {
@@ -438,49 +438,49 @@ exports.getPublicSchedule = async (req, res) => {
 };
 
 exports.syncGoogleCalendar = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        // Sync next 30 days
-        const start = new Date();
-        const end = new Date();
-        end.setDate(end.getDate() + 30);
+  try {
+    const userId = req.user.id;
+    // Sync next 30 days
+    const start = new Date();
+    const end = new Date();
+    end.setDate(end.getDate() + 30);
 
-        const events = await listGoogleEvents(start, end);
-        let count = 0;
+    const events = await listGoogleEvents(start, end);
+    let count = 0;
 
-        for (const event of events) {
-            const startDate = new Date(event.start.dateTime || event.start.date);
-            const endDate = new Date(event.end.dateTime || event.end.date);
+    for (const event of events) {
+      const startDate = new Date(event.start.dateTime || event.start.date);
+      const endDate = new Date(event.end.dateTime || event.end.date);
 
-            // Check duplicate
-            const exists = await prisma.personalTask.findFirst({
-                where: {
-                    userId: userId,
-                    title: event.summary || 'No Title',
-                    startTime: startDate
-                }
-            });
-
-            if (!exists) {
-                await prisma.personalTask.create({
-                    data: {
-                        userId: userId,
-                        title: event.summary || 'No Title',
-                        description: `Imported from Google Calendar\n${event.description || ''}`,
-                        date: startDate,
-                        startTime: startDate,
-                        endTime: endDate,
-                        color: '#4285F4',
-                        isCompleted: false
-                    }
-                });
-                count++;
-            }
+      // Check duplicate
+      const exists = await prisma.personalTask.findFirst({
+        where: {
+          userId: userId,
+          title: event.summary || 'No Title',
+          startTime: startDate
         }
+      });
 
-        res.json({ message: `Synced ${count} events from Google Calendar`, count });
-    } catch (err) {
-        console.error("Sync Error:", err);
-        res.status(500).json({ message: "Sync Failed" });
+      if (!exists) {
+        await prisma.personalTask.create({
+          data: {
+            userId: userId,
+            title: event.summary || 'No Title',
+            description: `Imported from Google Calendar\n${event.description || ''}`,
+            date: startDate,
+            startTime: startDate,
+            endTime: endDate,
+            color: '#4285F4',
+            isCompleted: false
+          }
+        });
+        count++;
+      }
     }
+
+    res.json({ message: `Synced ${count} events from Google Calendar`, count });
+  } catch (err) {
+    console.error("Sync Error:", err);
+    res.status(500).json({ message: "Sync Failed" });
+  }
 };

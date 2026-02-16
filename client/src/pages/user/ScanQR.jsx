@@ -109,9 +109,9 @@ const ScanQR = () => {
           onClick={() => navigate("/user")}
           className="text-white p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors active:scale-90 pointer-events-auto"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={28} />
         </button>
-        <h1 className="text-[28px] font-semibold tracking-wide text-white leading-tight drop-shadow-sm pointer-events-auto">Scanner</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-white leading-tight drop-shadow-sm pointer-events-auto">Scanner</h1>
       </div>
 
       {/* Main Scanner Area */}

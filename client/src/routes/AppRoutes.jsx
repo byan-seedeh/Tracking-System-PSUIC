@@ -1,6 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "../layouts/Layout";
+import { Routes, Route } from "react-router-dom";
 import LayoutUser from "../layouts/LayoutUser";
 import LayoutAdmin from "../layouts/LayoutAdmin";
 import LayoutIT from "../layouts/LayoutIT";
@@ -17,6 +16,7 @@ import Register from "../pages/auth/Register";
 // User
 import HomeUser from "../pages/user/HomeUser";
 import CreateTicket from "../pages/user/CreateTicket";
+import TicketForm from "../pages/user/TicketForm";
 import UserHistory from "../pages/user/History";
 import Profile from "../pages/user/Profile";
 import ITSchedule from "../pages/user/ITSchedule";
@@ -25,6 +25,7 @@ import Feedback from "../pages/user/Feedback";
 import WaitingForFeedback from "../pages/user/WaitingForFeedback";
 import QuickFix from "../pages/user/QuickFix";
 import UserReport from "../pages/user/UserReport";
+import UserNotifications from "../pages/user/Notifications";
 
 // Admin
 import Dashboard from "../pages/admin/Dashboard";
@@ -50,14 +51,8 @@ import History from "../pages/it/History";
 import Tickets from "../pages/it/Tickets";
 import ITTicketDetail from "../pages/it/TicketDetail";
 
-
-
 import QuickFixManagement from "../pages/admin/QuickFixManagement";
 import ITScheduleInternal from "../pages/it/Schedule";
-
-
-
-
 
 const AppRoutes = () => {
   return (
@@ -74,6 +69,7 @@ const AppRoutes = () => {
         <Route index element={<HomeUser />} />
 
         <Route path="create-ticket" element={<CreateTicket />} />
+        <Route path="create-ticket/form" element={<TicketForm />} />
         <Route path="report" element={<UserReport />} />
         <Route path="history" element={<UserHistory />} />
 
@@ -86,6 +82,7 @@ const AppRoutes = () => {
         <Route path="feedback" element={<WaitingForFeedback />} />
         <Route path="feedback/:ticketId" element={<Feedback />} />
         <Route path="quick-fix" element={<QuickFix />} />
+        <Route path="notifications" element={<UserNotifications />} />
       </Route>
 
       {/* Admin Routes */}
@@ -117,16 +114,9 @@ const AppRoutes = () => {
         <Route path="tickets" element={<Tickets />} />
         <Route path="ticket/:id" element={<ITTicketDetail />} />
         <Route path="schedule" element={<ITScheduleInternal />} />
-
-
-
-
-
       </Route>
 
       <Route path="*" element={<h1>404 Not Found</h1>} />
-
-
 
     </Routes>
   );

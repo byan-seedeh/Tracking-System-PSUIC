@@ -1,635 +1,331 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { CheckCircle, Clock, AlertCircle, User, MapPin, Calendar, ArrowLeft, Upload, FileText, Check, X, Ban, CalendarClock, Plus, Trash2, Save, PenTool, ChevronDown } from "lucide-react";
-import useAuthStore from "../../store/auth-store";
-import { getTicket } from "../../api/ticket";
-import { acceptJob, closeJob, saveDraft, previewJob, rejectJob } from "../../api/it";
-
+import {
+    ArrowLeft,
+    CheckCircle,
+    XCircle,
+    Upload,
+    X,
+    MapPin,
+    User,
+    Calendar
+} from "lucide-react";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
-dayjs.extend(relativeTime);
+import useAuthStore from "../../store/auth-store";
+import { getTicket } from "../../api/ticket";
+import { acceptJob, closeJob, rejectJob } from "../../api/it";
+
+/* =======================
+   Status Config
+======================= */
+const STATUS_CONFIG = {
+    not_start: {
+        label: "Not Started",
+        style: "bg-red-50 text-red-700 border-red-300"
+    },
+    in_progress: {
+        label: "In Progress",
+        style: "bg-blue-50 text-blue-700 border-blue-300"
+    },
+    completed: {
+        label: "Completed",
+        style: "bg-green-50 text-green-700 border-green-300"
+    },
+    rejected: {
+        label: "Rejected",
+        style: "bg-gray-100 text-gray-600 border-gray-300"
+    }
+};
 
 const TicketDetail = () => {
     const { token } = useAuthStore();
     const navigate = useNavigate();
     const { id } = useParams();
+
     const [ticket, setTicket] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Technician Action States
-    const [itNote, setItNote] = useState("");
-    const [proofImage, setProofImage] = useState(null);
-    const [selectedStatus, setSelectedStatus] = useState("");
-    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [note, setNote] = useState("");
+    const [proofFile, setProofFile] = useState(null);
 
-    // Checklist State
-    const [checklistItems, setChecklistItems] = useState([]); // [{id: 1, text: "Check Power", checked: false}]
-
-    // Reject Modal State
-    const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState("");
-    const [newChecklistInput, setNewChecklistInput] = useState("");
+    const [showRejectModal, setShowRejectModal] = useState(false);
 
-    // Reschedule Modal State REMOVED
+    const [previewImage, setPreviewImage] = useState(null);
 
-    const loadTicket = React.useCallback(async () => {
+    /* =======================
+       Load Ticket
+    ======================= */
+    const loadTicket = async () => {
         try {
             setLoading(true);
             const res = await getTicket(token, id);
             setTicket(res.data);
-            // Pre-fill existing note if available and status is completed (handled in useEffect above partially, but let's keep logic cleaner there)
-            if (res.data.status === 'completed') {
-                setItNote(res.data.note || "");
-            }
-        } catch (err) {
-            console.error("Failed to load ticket:", err);
-            toast.error("Failed to load ticket details");
+            setNote(res.data.note || "");
+        } catch {
+            toast.error("Failed to load ticket");
         } finally {
             setLoading(false);
         }
-    }, [token, id]);
+    };
 
-    const loadPreview = React.useCallback(async () => {
+    useEffect(() => {
+        loadTicket();
+    }, [id]);
+
+    /* =======================
+       Actions
+    ======================= */
+    const handleAccept = async () => {
         try {
-            setLoading(true);
-            const res = await previewJob(token, id);
-            setTicket(res.data);
-        } catch (err) {
-            console.error("Failed to load ticket preview:", err);
-            // Fallback to getTicket if preview fails or for compatibility, but intended for unaccepted jobs
+            await acceptJob(token, id);
+            toast.success("Ticket Accepted");
             loadTicket();
-        } finally {
-            setLoading(false);
-        }
-    }, [token, id, loadTicket]);
-
-    useEffect(() => {
-        // We can try loadPreview first? Or just loadTicket. 
-        // User asked for "create as api for view". 
-        // We will attempt to use previewJob. Ideally we should know if we are in "preview mode".
-        // Use previewJob. accessible for IT.
-        loadPreview();
-    }, [loadPreview]);
-
-    useEffect(() => {
-        if (ticket) {
-            setSelectedStatus(ticket.status);
-            // Pre-fill notes and checklist
-            if (ticket.note) setItNote(ticket.note);
-            if (ticket.checklist) {
-                try {
-                    const parsed = JSON.parse(ticket.checklist);
-                    if (Array.isArray(parsed)) setChecklistItems(parsed);
-                } catch (e) {
-                    console.error("Failed to parse checklist JSON", e);
-                }
-            }
-        }
-    }, [ticket]);
-
-
-
-    const handleProofUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            return toast.error("Image too large (max 5MB)");
-        }
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-            setProofImage(reader.result);
-        };
-    };
-
-    // Checklist Handlers
-    const addChecklistItem = () => {
-        if (!newChecklistInput.trim()) return;
-        const newItem = {
-            id: Date.now(),
-            text: newChecklistInput,
-            checked: false
-        };
-        setChecklistItems([...checklistItems, newItem]);
-        setNewChecklistInput("");
-    };
-
-    const toggleChecklistItem = (itemId) => {
-        if (ticket.status === 'completed') return; // Read-only if completed
-        setChecklistItems(checklistItems.map(item =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-        ));
-    };
-
-    const removeChecklistItem = (itemId) => {
-        setChecklistItems(checklistItems.filter(item => item.id !== itemId));
-    };
-
-    const handleSaveDraft = async () => {
-        try {
-            await saveDraft(token, id, {
-                note: itNote,
-                checklist: checklistItems,
-                proof: proofImage
-            });
-            toast.success("Draft saved successfully!");
         } catch (err) {
-            console.error(err);
-            toast.error("Failed to save draft");
+            toast.error(err.response?.data?.message || "Action Failed");
         }
     };
 
     const handleReject = async () => {
-        if (!rejectReason.trim()) return toast.warning("Please provide a reason");
+        if (!rejectReason.trim()) {
+            return toast.warning("Please enter rejection reason");
+        }
         try {
             await rejectJob(token, id, rejectReason);
-            toast.success("Ticket rejected successfully");
+            toast.success("Ticket Rejected");
             setShowRejectModal(false);
-
-            // Navigate back to dashboard or reload? Preview mode implies we probably go back to list as it's done.
-            // But let's follow accept pattern (stay or reload). Actually reject = closed/completed.
-            // Let's go back to dashboard to avoid confusion or reload to show updated state (which is probably restricted access now).
-            // Dashboard is safer.
-            navigate('/it');
+            loadTicket();
         } catch (err) {
-            toast.error(err.response?.data?.message || "Failed to reject ticket");
+            toast.error(err.response?.data?.message || "Action Failed");
         }
     };
 
-    const handleUpdateStatus = async () => {
-        if (!ticket) return;
+    const handleComplete = async () => {
+        if (!note.trim()) return toast.warning("Please enter diagnosis");
 
-        // 1. Special Handler for Accept Button Click (If ticket is not_start, the ONLY action is Accept)
-        if (ticket.status === 'not_start') {
-            try {
-                await acceptJob(token, id);
-                toast.success("Job accepted successfully!");
-                // Reload with standard loadTicket to get full edit capabilities
-                loadTicket();
-            } catch (err) {
-                console.error(err);
-                toast.error(err.response?.data?.message || "Failed to accept job");
-            }
-            return;
-        }
+        const confirm = await Swal.fire({
+            title: "Confirm Completion",
+            text: "Are you sure this ticket is resolved?",
+            showCancelButton: true,
+            confirmButtonColor: "#193C6C"
+        });
 
-        if (selectedStatus === ticket.status) {
-            return toast.info("No status change detected.");
-        }
+        if (!confirm.isConfirmed) return;
 
-        // 2. -> Completed
-        if (selectedStatus === 'completed') {
-            if (!itNote.trim()) return toast.warning("Please add some internal notes of diagnosis.");
+        try {
+            const formData = new FormData();
+            formData.append("note", note);
+            if (proofFile) formData.append("images", proofFile);
 
-            // Check if all checklist items are checked (Optional warning)
-            const unchecked = checklistItems.filter(i => !i.checked).length;
-            if (unchecked > 0) {
-                const proceed = await Swal.fire({
-                    title: "Unfinished Checklist",
-                    text: `You have ${unchecked} unchecked items. Complete anyway?`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes, Complete",
-                });
-                if (!proceed.isConfirmed) return;
-            }
-
-            Swal.fire({
-                title: "Complete Job?",
-                text: "Are you sure you want to mark this ticket as completed?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#2563eb",
-                confirmButtonText: "Yes, Complete",
-                cancelButtonText: "Back"
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await closeJob(token, id, {
-                            note: itNote,
-                            proof: proofImage,
-                            checklist: checklistItems
-                        });
-                        toast.success("Ticket closed successfully!");
-                        loadTicket();
-                    } catch (err) {
-                        console.error(err);
-                        toast.error("Failed to close ticket");
-                    }
-                }
-            });
-            return;
-        }
-
-
-
-        // 4. Fallback / Not Start
-        if (selectedStatus === 'not_start') {
-            toast.warning("Cannot move ticket back to Not Start manually.");
-            setSelectedStatus(ticket.status); // Revert selection
+            await closeJob(token, id, formData);
+            toast.success("Ticket Completed");
+            loadTicket();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Action Failed");
         }
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[#193C6C]" />
+            </div>
+        );
+    }
 
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-    );
+    if (!ticket) return null;
 
-    if (!ticket) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-            <h2 className="text-xl font-bold text-gray-700 mb-2">Ticket Not Found</h2>
-            <button onClick={() => navigate("/it/tickets")} className="text-blue-500 hover:underline">Back to All Tickets</button>
-        </div>
-    );
-
-    const steps = [
-        { label: "NOT START", status: "not_start", active: true },
-        { label: "IN PROGRESS", status: "in_progress", active: ["in_progress", "completed"].includes(ticket.status) },
-        { label: "COMPLETED", status: "completed", active: ["completed"].includes(ticket.status) }
-    ];
-
-    const getUrgencyBadge = (urgency) => {
-        switch (urgency) {
-            case "Critical": return "bg-red-100 text-red-600";
-            case "High": return "bg-red-100 text-red-600";
-            case "Medium": return "bg-orange-100 text-orange-600";
-            case "Low": return "bg-green-100 text-green-600";
-            default: return "bg-green-100 text-green-600";
-        }
-    };
-
-    // Helper for Select Indicator Color
-    const getSelectStatusColor = (status) => {
-        switch (status) {
-            case 'not_start': return 'bg-emerald-400';
-            case 'in_progress': return 'bg-yellow-400';
-            case 'completed': return 'bg-blue-500';
-            default: return 'bg-gray-400';
-        }
-    };
+    const status =
+        STATUS_CONFIG[ticket.status] || STATUS_CONFIG.not_start;
 
     return (
-        <div className="min-h-screen bg-white pb-24">
-            {/* Header with Back Button */}
-            <div className="px-6 pt-8 pb-4">
-                <div className="flex items-center justify-between mb-2">
-                    <button onClick={() => navigate("/it/tickets")} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <ArrowLeft className="text-blue-600" strokeWidth={3} size={24} />
-                    </button>
-                    <div className="text-center">
-                        <h1 className="text-lg font-bold text-blue-600">#TK-{String(ticket.id).padStart(2, '0')}</h1>
-                        <p className="text-xs text-gray-500">{dayjs(ticket.createdAt).format('MMM D, YYYY')}</p>
-                    </div>
-                    <div className="w-10"></div>
-                </div>
+        <div className="min-h-screen bg-gray-100 px-4 py-6 font-poppins">
 
-                {/* Status Pipeline */}
-                <div className="flex items-center justify-between px-8 mt-6 mb-8 relative">
-                    <div className="absolute top-3 left-12 right-12 h-1 bg-gray-200 -z-10"></div>
-                    <div className={`absolute top-3 left-12 right-12 h-1 bg-blue-700 transition-all duration-500 -z-10`} style={{
-                        width: ticket.status === 'completed' ? '80%' : ticket.status === 'in_progress' ? '50%' : '0%'
-                    }}></div>
-
-                    {steps.map((step, idx) => (
-                        <div key={idx} className="flex flex-col items-center gap-2">
-                            <div className={`w-7 h-7 rounded-full border-4 transition-colors ${step.active ? 'bg-blue-700 border-blue-700' : 'bg-gray-200 border-gray-200'}`}></div>
-                            <span className={`text-[10px] font-bold tracking-wider ${step.active ? 'text-blue-700' : 'text-gray-400'}`}>{step.label}</span>
-                        </div>
-                    ))}
-                </div>
+            {/* Top Back + Page Title */}
+            <div className="max-w-3xl mx-auto mb-4">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800"
+                >
+                    <ArrowLeft size={18} />
+                    Back
+                </button>
+                <h1 className="text-xl font-semibold text-slate-800 mt-2">
+                    Ticket Details
+                </h1>
             </div>
 
-            <div className="px-6 space-y-6">
-                {/* User & Ticket Info Card */}
-                <div className="bg-white rounded-3xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.1)] border border-gray-100 p-6">
-                    <div className="flex items-start justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-red-100 rounded-full overflow-hidden">
-                                {ticket.createdBy?.picture ? (
-                                    <img src={ticket.createdBy.picture} alt="User" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-red-500 font-bold text-xl">
-                                        {ticket.createdBy?.name?.[0] || 'U'}
-                                    </div>
-                                )}
-                            </div>
-                            <div>
-                                <h2 className="font-bold text-gray-900 text-lg">{ticket.createdBy?.name || ticket.createdBy?.username || ticket.createdBy?.email || "Unknown User"}</h2>
-                                <p className="text-gray-400 text-sm capitalize">{ticket.createdBy?.role || "User"}</p>
-                            </div>
-                        </div>
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${getUrgencyBadge(ticket.urgency)}`}>
-                            {ticket.urgency}
+            {/* Unified Card */}
+            <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-lg overflow-hidden">
+
+                {/* Header */}
+                <div className="bg-[#193C6C] text-white p-6">
+                    <h2 className="text-2xl font-semibold mb-2">
+                        #{ticket.id}: {ticket.title}
+                    </h2>
+
+                    <div className="flex flex-wrap gap-4 text-sm opacity-90">
+                        <span className="flex items-center gap-1">
+                            <MapPin size={14} />
+                            Floor {ticket.room?.floor}, {ticket.room?.roomNumber}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <User size={14} />
+                            {ticket.createdBy?.name}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            {dayjs(ticket.createdAt).format("D MMM YYYY, HH:mm")}
                         </span>
                     </div>
-
-                    <div className="space-y-3">
-                        <div>
-                            <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Location</label>
-                            <p className="font-bold text-gray-800 text-sm">Floor {ticket.room?.floor}, {ticket.room?.roomNumber}</p>
-                        </div>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <label className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Category</label>
-                                <p className="font-bold text-gray-800 text-sm">{ticket.category?.name || "General"}</p>
-                            </div>
-                            <span className="text-xs text-gray-400">{dayjs(ticket.createdAt).format('D MMM YY, HH:mm A')}</span>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Description */}
-                <div>
-                    <h3 className="font-bold text-gray-900 mb-3 uppercase text-sm tracking-wide">Description</h3>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                        <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                {/* Body */}
+                <div className="p-6 space-y-6">
+
+                    {/* Status */}
+                    <span
+                        className={`inline-block px-4 py-1.5 rounded-full border text-sm font-semibold ${status.style}`}
+                    >
+                        {status.label}
+                    </span>
+
+                    {/* Request Information */}
+                    <div>
+                        <h3 className="font-semibold mb-2">Request Information</h3>
+                        <div className="bg-gray-50 border rounded-xl p-4 text-sm text-gray-700">
                             {ticket.description}
-                        </p>
-                        {(ticket.images && ticket.images.filter(img => img.type === 'before').length > 0) && (
-                            <div className="mt-4 pt-4 border-t border-gray-50">
-                                <p className="text-xs text-blue-500 font-bold uppercase tracking-wide mb-3">Attachments</p>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {ticket.images.filter(img => img.type === 'before').map((img, index) => (
-                                        <div key={index} className="rounded-2xl overflow-hidden border border-gray-100 relative group aspect-[4/3] shadow-sm cursor-pointer" onClick={() => window.open(img.url, '_blank')}>
-                                            <img
-                                                src={img.url}
-                                                alt={`Attachment ${index + 1}`}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                            />
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Checklist & IT Notes Section */}
-                <div className={`${(ticket.status === 'not_start' && selectedStatus !== 'completed') ? 'hidden' : ''} transition-opacity`}>
-
-                    {/* Checklist */}
-                    <h3 className="font-bold text-gray-900 mb-3 uppercase text-sm tracking-wide flex items-center justify-between">
-                        <span>Checklist</span>
-                        <span className="text-xs text-gray-400 lowercase font-normal">{checklistItems.filter(i => i.checked).length}/{checklistItems.length} completed</span>
-                    </h3>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mb-6">
-                        <div className="space-y-3 mb-4">
-                            {checklistItems.map((item) => (
-                                <div key={item.id} className="flex items-center gap-3 group">
-                                    <button
-                                        onClick={() => toggleChecklistItem(item.id)}
-                                        className={`transition-colors flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center ${item.checked ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300 hover:border-blue-400'}`}
-                                        disabled={ticket.status === 'completed'}
-                                    >
-                                        {item.checked && <Check size={14} className="text-white" strokeWidth={3} />}
-                                    </button>
-                                    <span className={`flex-1 text-sm font-medium transition-all ${item.checked ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                                        {item.text}
-                                    </span>
-                                    {ticket.status !== 'completed' && (
-                                        <button
-                                            onClick={() => removeChecklistItem(item.id)}
-                                            className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                            {checklistItems.length === 0 && (
-                                <p className="text-sm text-gray-400 italic text-center py-2">No items in checklist.</p>
-                            )}
                         </div>
-
-                        {ticket.status !== 'completed' && (
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    className="flex-1 bg-gray-50 border-0 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-100 outline-none"
-                                    placeholder="Add new checklist item..."
-                                    value={newChecklistInput}
-                                    onChange={(e) => setNewChecklistInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && addChecklistItem()}
-                                />
-                                <button
-                                    onClick={addChecklistItem}
-                                    className="bg-blue-100 text-blue-600 p-2 rounded-xl hover:bg-blue-200 transition-colors"
-                                >
-                                    <Plus size={20} />
-                                </button>
-                            </div>
-                        )}
                     </div>
 
-                    <h3 className="font-bold text-gray-900 mb-3 uppercase text-sm tracking-wide">IT Notes & Proof</h3>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-
-                        {(selectedStatus === 'completed' || ticket.status === 'in_progress') ? (
-                            <>
-                                <textarea
-                                    className="w-full bg-gray-50 border-0 rounded-xl p-4 text-sm text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-100 outline-none resize-none h-32 mb-4"
-                                    placeholder="Describe the solution or diagnosis..."
-                                    value={itNote}
-                                    onChange={(e) => setItNote(e.target.value)}
-                                    disabled={ticket.status === 'completed'}
-                                ></textarea>
-
-                                {ticket.status !== 'completed' && (
-                                    <div className="flex flex-col gap-4">
-                                        <label className="block w-full bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer transition-colors">
-                                            {proofImage ? (
-                                                <div className="relative h-40 rounded-lg overflow-hidden">
-                                                    <img src={proofImage} alt="Proof" className="w-full h-full object-cover" />
-                                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white font-medium">Click to change</div>
-                                                </div>
-                                            ) : (
-                                                <div className="py-4">
-                                                    <Upload className="mx-auto text-gray-400 mb-2" size={24} />
-                                                    <span className="text-sm font-bold text-gray-500">Upload Proof of Fix</span>
-                                                </div>
-                                            )}
-                                            <input type="file" className="hidden" accept="image/*" onChange={handleProofUpload} />
-                                        </label>
-
-                                        {/* Save Draft Button */}
-                                        <button
-                                            onClick={handleSaveDraft}
-                                            className="w-full bg-indigo-50 text-indigo-600 font-bold py-3 rounded-xl hover:bg-indigo-100 transition flex items-center justify-center gap-2 border border-indigo-100"
-                                        >
-                                            <Save size={18} />
-                                            Save Draft
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        ) : null}
-
-                        {/* Display existing notes if completed */}
-                        {(ticket.status === 'completed') && (
-                            <div className="space-y-3">
-                                <div className={`p-4 rounded-xl border text-sm ${ticket.status === 'completed' ? 'bg-green-50 border-green-100 text-green-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
-                                    <span className="font-bold block mb-1">Diagnosis / Notes:</span>
-                                    {ticket.note || "No notes provided."}
-                                </div>
-                                {ticket.proof && (
-                                    <div className="rounded-xl overflow-hidden border border-gray-100 mt-2">
-                                        <p className="text-xs text-gray-500 mb-1 px-1">Proof of fix:</p>
-                                        <img src={ticket.proof} alt="Proof" className="w-full h-40 object-cover" />
-                                    </div>
-                                )}
+                    {/* Attachments */}
+                    {ticket.images?.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase mb-2">
+                                Attachments
+                            </p>
+                            <div className="flex gap-3 flex-wrap">
+                                {ticket.images.map((img, i) => (
+                                    <img
+                                        key={i}
+                                        src={img.url}
+                                        onClick={() => setPreviewImage(img.url)}
+                                        className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:shadow"
+                                        alt="Attachment"
+                                    />
+                                ))}
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {(ticket.status === 'not_start' && selectedStatus === 'not_start') && (
-                            <p className="text-sm text-gray-400 italic text-center py-4">Accept the job to add notes.</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Show Accept Button ONLY if Not Start (Preview Mode) */}
-                {ticket.status === 'not_start' && (
-                    <div className="mt-6 flex flex-col items-center">
-                        <div className="flex gap-4 w-full max-w-sm justify-center">
+                    {/* Actions */}
+                    {ticket.status === "not_start" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button
-                                onClick={handleUpdateStatus}
-                                className="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl shadow-md shadow-blue-200 hover:bg-blue-700 transition text-base"
+                                onClick={handleAccept}
+                                className="py-3 rounded-xl bg-[#193C6C] text-white font-semibold flex items-center justify-center gap-2"
                             >
-                                Accept
+                                <CheckCircle size={18} />
+                                Accept Ticket
                             </button>
                             <button
                                 onClick={() => setShowRejectModal(true)}
-                                className="flex-1 bg-white text-red-500 border border-red-200 font-bold py-2.5 rounded-xl hover:bg-red-50 transition text-base"
+                                className="py-3 rounded-xl border text-red-600 font-semibold flex items-center justify-center gap-2"
                             >
-                                Reject
-                            </button>
-                        </div>
-                        <p className="text-center text-gray-400 text-xs mt-3">
-                            You are in <strong>Read-Only Preview Mode</strong>. Accept to start or Reject to declne.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            {/* Status Dropdoen & Update - HIDDEN if Not Start */}
-            {ticket.status !== 'not_start' && (
-                <div className="pb-8">
-                    <h3 className="font-bold text-gray-900 mb-3 uppercase text-sm tracking-wide">Status</h3>
-
-                    <div className="bg-white rounded-2xl border border-gray-100 p-2">
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => !(ticket.status === 'completed') && setIsStatusOpen(!isStatusOpen)}
-                                className={`w-full bg-white font-bold text-gray-700 py-4 pl-4 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center justify-between transition-all ${ticket.status === 'completed' ? 'bg-gray-50 cursor-not-allowed' : 'cursor-pointer hover:border-blue-300'}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-3 h-3 rounded-full ${getSelectStatusColor(selectedStatus)}`}></div>
-                                    <span>
-                                        {selectedStatus === 'not_start' && "Not Start"}
-                                        {selectedStatus === 'in_progress' && "In Progress"}
-                                        {selectedStatus === 'completed' && "Completed"}
-                                        {!selectedStatus && "Select Status"}
-                                    </span>
-                                </div>
-                                <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${isStatusOpen ? "rotate-180" : ""}`} />
-                            </button>
-
-                            {isStatusOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="p-2 flex flex-col gap-1">
-                                        {[
-                                            { value: 'not_start', label: 'Not Start' },
-                                            { value: 'in_progress', label: 'In Progress' },
-                                            { value: 'completed', label: 'Completed' }
-                                        ].map((option) => (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedStatus(option.value);
-                                                    setIsStatusOpen(false);
-                                                }}
-                                                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 group ${selectedStatus === option.value ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}
-                                            >
-                                                <div className={`w-2 h-2 rounded-full ${getSelectStatusColor(option.value)}`}></div>
-                                                <span>{option.label}</span>
-                                                {selectedStatus === option.value && <Check size={16} className="ml-auto text-blue-600" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {!(ticket.status === 'completed') && (
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                            <button onClick={() => navigate(-1)} className="col-span-1 bg-gray-100 text-gray-600 font-bold py-4 rounded-2xl hover:bg-gray-200 transition">
-                                Back
-                            </button>
-                            <button
-                                onClick={handleUpdateStatus}
-                                className="col-span-2 bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition flex items-center justify-center gap-2"
-                            >
-                                {selectedStatus === 'completed' ? 'Complete Job' : 'Update Status'}
+                                <XCircle size={18} />
+                                Reject Ticket
                             </button>
                         </div>
                     )}
 
-                    {(ticket.status === 'completed') && (
-                        <div className="mt-4">
-                            <button onClick={() => navigate(-1)} className="w-full bg-gray-100 text-gray-600 font-bold py-4 rounded-2xl hover:bg-gray-200 transition">
-                                Back to Tickets
+                    {ticket.status === "in_progress" && (
+                        <div className="space-y-4">
+                            <textarea
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                className="w-full border rounded-xl p-4 text-sm"
+                                rows={4}
+                                placeholder="Diagnosis / Resolution notes"
+                            />
+
+                            <label className="border-dashed border-2 rounded-xl p-6 text-center cursor-pointer block">
+                                <Upload className="mx-auto mb-2 text-gray-400" />
+                                {proofFile ? proofFile.name : "Upload Proof (optional)"}
+                                <input
+                                    type="file"
+                                    hidden
+                                    accept="image/*"
+                                    onChange={(e) => setProofFile(e.target.files[0])}
+                                />
+                            </label>
+
+                            <button
+                                onClick={handleComplete}
+                                className="w-full py-3 rounded-xl bg-[#193C6C] text-white font-semibold"
+                            >
+                                Mark as Completed
                             </button>
                         </div>
                     )}
                 </div>
-            )}
-
-
+            </div>
 
             {/* Reject Modal */}
-            {
-                showRejectModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
-                            <h3 className="text-xl font-bold mb-2 text-center text-gray-800">Reject Ticket?</h3>
-                            <p className="text-gray-500 text-center mb-4 text-sm">
-                                Please provide a reason for rejecting this ticket.
-                            </p>
-                            <textarea
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-100 outline-none mb-4"
-                                rows="3"
-                                placeholder="Reason for rejection..."
-                                value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)}
-                            ></textarea>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowRejectModal(false)}
-                                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleReject}
-                                    className="flex-1 bg-red-500 text-white py-3 rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition"
-                                >
-                                    Reject
-                                </button>
-                            </div>
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm relative">
+                        <button
+                            onClick={() => setShowRejectModal(false)}
+                            className="absolute top-4 right-4"
+                        >
+                            <X />
+                        </button>
+                        <h3 className="font-semibold mb-3">Reject Ticket</h3>
+                        <textarea
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            className="w-full border rounded-xl p-3 mb-4"
+                            rows={3}
+                            placeholder="Enter reason"
+                        />
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowRejectModal(false)}
+                                className="flex-1 py-2 rounded-xl bg-gray-100"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReject}
+                                className="flex-1 py-2 rounded-xl bg-red-500 text-white"
+                            >
+                                Confirm
+                            </button>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
-        </div >
+            {/* Image Preview */}
+            {previewImage && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                    <button
+                        onClick={() => setPreviewImage(null)}
+                        className="absolute top-6 right-6 text-white"
+                    >
+                        <X size={28} />
+                    </button>
+                    <img
+                        src={previewImage}
+                        className="max-h-[80vh] rounded-xl"
+                        alt="Preview"
+                    />
+                </div>
+            )}
+        </div>
     );
 };
 

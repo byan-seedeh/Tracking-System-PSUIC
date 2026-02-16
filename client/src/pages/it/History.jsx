@@ -80,21 +80,29 @@ const History = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-24 p-4 md:p-6 animate-in fade-in duration-500">
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-3 tracking-tight">
-                            <Clock className="text-blue-600" size={32} />
-                            Task History
-                        </h1>
-                        <p className="text-gray-500 text-sm mt-2 ml-1">Archive of all completed maintenance tasks and resolutions</p>
+        <div className="min-h-screen bg-gray-50 pb-24 font-poppins text-gray-900 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="bg-[#193C6C] px-6 pt-10 pb-12 rounded-b-[3rem] shadow-lg relative z-0">
+                <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-sm border border-white/10">
+                            <Clock className="text-white" size={32} />
+                        </div>
+                        <div>
+                            <h1 className="text-white text-3xl font-semibold tracking-tight">
+                                Task History
+                            </h1>
+                            <p className="text-blue-200 text-sm mt-1">
+                                Archive of all completed maintenance tasks and resolutions
+                            </p>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <div className="max-w-[1200px] mx-auto px-6 mt-6 relative z-10 space-y-6">
                 {/* Filters */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-20 z-20">
+                <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-4 z-20">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -156,7 +164,7 @@ const History = () => {
                             <div className="w-20 h-20 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle size={40} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800">No history found</h3>
+                            <h3 className="text-xl font-semibold text-gray-800">No history found</h3>
                             <p className="text-gray-500 mt-1">You haven't completed any tasks yet.</p>
                         </div>
                     ) : (
@@ -171,10 +179,10 @@ const History = () => {
                                             </div>
                                             <div>
                                                 <div className="flex flex-wrap items-center gap-3 mb-2">
-                                                    <h3 className="font-bold text-gray-800 text-lg md:text-xl group-hover:text-blue-600 transition-colors">
+                                                    <h3 className="font-semibold text-gray-800 text-lg md:text-xl group-hover:text-blue-600 transition-colors">
                                                         {ticket.equipment?.name || ticket.title}
                                                     </h3>
-                                                    <span className="bg-green-100 text-green-700 text-[10px] uppercase font-bold px-2 py-1 rounded-full tracking-wide">
+                                                    <span className="bg-green-100 text-green-700 text-[10px] uppercase font-semibold px-2 py-1 rounded-full tracking-wide">
                                                         Resolved
                                                     </span>
                                                 </div>
@@ -203,7 +211,7 @@ const History = () => {
                                         <div className="flex flex-row md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0 pl-0 md:pl-4 md:min-w-[140px]">
                                             <div className="text-right">
                                                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Completed</p>
-                                                <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                                                <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                                                     <Calendar size={14} className="text-gray-400" />
                                                     {dayjs(ticket.updatedAt).format("MMM D, YYYY")}
                                                 </p>
@@ -215,7 +223,7 @@ const History = () => {
                                             {ticket.rating ? (
                                                 <div className="flex items-center gap-1.5 mt-3 bg-yellow-50 px-3 py-1.5 rounded-lg border border-yellow-100">
                                                     <span className="text-yellow-500 text-sm">⭐</span>
-                                                    <span className="text-sm font-bold text-gray-800">{ticket.rating}/5</span>
+                                                    <span className="text-sm font-semibold text-gray-800">{ticket.rating}/5</span>
                                                 </div>
                                             ) : (
                                                 <div className="mt-3 px-3 py-1.5 text-xs text-gray-400 bg-gray-50 rounded-lg">
